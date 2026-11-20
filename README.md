@@ -1,6 +1,8 @@
 # Open Fitness rider passport
 
-A rider can share their training settings with a cycling app and bring their completed rides back to one history. A workout app might read FTP, while a cycling game might save a timed effort with power and no distance. Each app asks the rider for the permissions its feature needs.
+A rider can share their training settings with a cycling app and bring their completed rides back to one history. A workout app might read heart-rate zones, while a cycling game might save a timed effort with power and no distance. Each app asks the rider for the permissions its feature needs.
+
+The [Python starter kit](examples/README.md) lets you preview a route, workout or game offline, then test that resending a ride creates a single passport entry.
 
 ## Start with one feature
 

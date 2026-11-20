@@ -1,0 +1,13 @@
+{
+  "source_ride_id": "starter-valley-climb-1",
+  "started": "2026-01-16T09:00:00Z",
+  "duration": 1800,
+  "distance": 12000,
+  "revision": 1,
+  "details": {
+    "kind": "route",
+    "title": "Valley climb",
+    "ascent_m": 186,
+    "completion": "completed"
+  }
+}

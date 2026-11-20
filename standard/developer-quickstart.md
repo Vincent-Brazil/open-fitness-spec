@@ -1,6 +1,8 @@
 # Connect your app to a rider passport
 
-Start with one thing your riders already do. A workout app can use their FTP to set a target. A cycling game can save the effort when they finish. A training journal can pick up rides from both.
+Start with one thing your riders already do. A workout app can use their heart-rate zones. A cycling game can save the effort when they finish. A training journal can pick up rides from both.
+
+The [Python starter kit](../examples/README.md) includes ready-to-use JSON for a route, workout and game. From the repository root, run `python examples/sample_ride.py game` for an offline preview. Add your test app’s passport client ID as described in the kit to check delivery and retries.
 
 The public service is https://openfitness.apogee.training. Use the [exchange specification in Markdown](https://openfitness.apogee.training/standard/contract.md) for the API contract and the [runnable Python example](../examples/passport_quickstart.py) to test one feature. A catalogue listing needs no integration. Sign-in and passport data sharing are independent.
 

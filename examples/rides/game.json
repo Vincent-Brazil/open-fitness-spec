@@ -1,0 +1,14 @@
+{
+  "source_ride_id": "starter-balloon-round-1",
+  "started": "2026-01-15T09:00:00Z",
+  "duration": 600,
+  "power": 150,
+  "revision": 1,
+  "details": {
+    "kind": "game",
+    "title": "Balloon sprint",
+    "timer_s": 600,
+    "work_kj": 90,
+    "achievements": [{"name": "Balloons inflated", "score": 12, "unit": "balloons"}]
+  }
+}

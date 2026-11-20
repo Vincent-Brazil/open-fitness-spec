@@ -1,0 +1,16 @@
+{
+  "source_ride_id": "starter-morning-intervals-1",
+  "started": "2026-01-17T09:00:00Z",
+  "duration": 960,
+  "power": 180,
+  "revision": 1,
+  "details": {
+    "kind": "workout",
+    "title": "Morning intervals",
+    "elapsed_s": 960,
+    "timer_s": 900,
+    "power_source": "measured",
+    "best_watts": {"60": 240, "300": 192},
+    "completion": "completed"
+  }
+}
