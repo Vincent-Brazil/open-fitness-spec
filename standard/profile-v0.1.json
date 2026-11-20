@@ -1,0 +1,184 @@
+{
+  "version": "0.1",
+  "type": "object",
+  "title": "Open Fitness â€” scoped profile response",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "required": [
+    "subject",
+    "scopes",
+    "shared"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "subject": {
+      "type": "string",
+      "description": "Stable per rider and client; not the platform account ID."
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "name",
+          "units",
+          "ftp",
+          "weight",
+          "age",
+          "height",
+          "max_hr",
+          "zones",
+          "control",
+          "history",
+          "achievements",
+          "write"
+        ]
+      }
+    },
+    "shared": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "units": {
+          "type": "string",
+          "description": "Rider display preference: metric or imperial. Earlier providers may return Metric, Imperial, kg or lb. This does not change any numeric field in the exchange."
+        },
+        "ftp": {
+          "type": "number",
+          "description": "Watts"
+        },
+        "weight": {
+          "type": "number",
+          "description": "Kilograms"
+        },
+        "age": {
+          "type": "number",
+          "description": "Years"
+        },
+        "height": {
+          "type": "number",
+          "description": "Centimetres"
+        },
+        "max_hr": {
+          "type": "number",
+          "description": "Beats per minute"
+        },
+        "zones": {
+          "type": "string"
+        },
+        "control": {
+          "type": "string"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "started",
+              "duration",
+              "label",
+              "sources"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "started": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "duration": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "distance": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Metres reported by the originating recorder."
+              },
+              "power": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Average observed watts."
+              },
+              "label": {
+                "type": "string"
+              },
+              "ambiguous": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "const": "file"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "client_id"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "const": "app"
+                        },
+                        "client_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "achievements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "progress",
+              "target"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "progress": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "target": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

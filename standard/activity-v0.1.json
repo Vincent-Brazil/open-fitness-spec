@@ -1,0 +1,48 @@
+{
+  "title": "Submit a completed ride",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_ride_id",
+    "started",
+    "duration"
+  ],
+  "properties": {
+    "source_ride_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 140
+    },
+    "started": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 604800,
+      "description": "Elapsed seconds"
+    },
+    "distance": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Metres"
+    },
+    "power": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Average recorded rider power in watts. The summary alone does not establish power provenance."
+    },
+    "premium": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
