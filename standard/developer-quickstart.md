@@ -17,6 +17,10 @@ Put **Continue with Open Fitness** on your app’s sign-in screen. A rider with 
 
 [Read the sign-in request and response contract](training-v0.2.md#continue-with-open-fitness). To add optional ride sharing, offer **Connect passport** inside the app and follow the data example below.
 
+**Launch from the catalogue.** Enable catalogue sign-in in My apps when your app handles `of_launch=signin`. Remove that hint and start your normal passport sign-in if the rider needs a session. Offer new riders registration or a way to link their existing account.
+
+**Bring the trainer too.** Implement the optional [phone companion handoff](trainer-experiment.md). Capture a trainer grant from the URL fragment before starting sign-in and redeem it from your launch origin after the rider returns. Test with and without a linked phone.
+
 ## Try a connection with your own app ID
 
 1. [Register an app](https://openfitness.apogee.training/studio/app/new) with your rider passport. Enter your launch URL and listing details. To try the API, expand **Add a passport connection**. You can test a private draft immediately and submit it for catalogue review when you’re ready for riders to find it.

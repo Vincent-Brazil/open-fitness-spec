@@ -11,8 +11,15 @@
 | Profile reader v0.1 | Request only the fields it uses, check the grant and handle an absent field or an empty history. | A training app requests FTP. A journal requests history. |
 | File exchange | Name the format, direction and content. A rider explicitly imports or exports the file. | “Exports a completed cycling activity as TCX” lets a rider bring an Apogee ride back. |
 | Directory listing | Describe launch, availability, equipment and evidence. Indicate unknowns. | A trainer-to-gamepad bridge may have no activity to share. |
+| Phone companion (experimental) | Implement the [trainer handoff](trainer-experiment.md) and enable it for the listing. | A browser game receives live watts from the rider's paired phone. |
 
 A client can implement either API role or both. Listing an app, exchanging files and adopting a controller protocol are independent choices.
+
+## Catalogue sign-in
+
+An app with a registered sign-in callback can enable **Start passport sign-in** in My apps. When a signed-in rider launches it, the catalogue adds `of_launch=signin` to the launch URL. This optional hint contains no identity. An app with a valid local session can open the ride directly. Otherwise, consume the hint once and begin the usual Continue with Open Fitness flow with state and PKCE. On cancellation, return to the app's sign-in options.
+
+After verifying the sign-in response, recognise returning riders by the issuer, audience and pairwise subject. On a first visit, offer account creation or linking to an existing authenticated app account. Obtain the app's own required consent. Trainer handoff and passport data sharing have their own grants.
 
 ## Connect a rider
 
