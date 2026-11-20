@@ -1,13 +1,19 @@
 # Trainer companion experiment
 
-The rider pairs a phone with their passport, connects the trainer on the phone and launches a supported app from the catalogue. The browser and phone communicate with the Open Fitness service over HTTPS. Apogee is the first participating riding app. Live device access, app sign-in and permission to save a ride are independent.
+The rider pairs a phone with their passport, connects the trainer on the phone and launches a supported riding app from the catalogue. The browser and phone communicate with Open Fitness over HTTPS. Live device access, app sign-in and permission to save a ride are independent.
+
+## Try it with your own app
+
+Serve the [browser example](https://github.com/Vincent-Brazil/open-fitness-spec/blob/main/examples/companion.html) at an HTTPS URL on your app’s origin. In My apps, register that URL as your launch page and tick the trainer companion option. Use a launch URL without a fragment so the catalogue can attach the single-use grant. Submit your listing for approval. A trainer-only app can leave both sign-in and ride-data sharing off.
+
+Once the listing is published, open it from a rider passport with an online, paired phone. The example displays power and cadence from compatible trainers. Opening the example directly exercises the ordinary launch without a phone. In your own app, fall back to your usual setup in that case. [Guided setup](https://openfitness.apogee.training/standard/quickstart?feature=companion)
 
 ## Implement in a riding app
 
 1. Use an HTTPS launch URL you control. Read the fragment `#of_trainer=<code>` on arrival, then remove it with `history.replaceState`. Treat the code as a secret. Keep it out of analytics, referrers and logs. A launch without a code uses your usual device setup.
 2. If `of_launch=signin` accompanies the grant, keep the grant in this tab across the normal passport sign-in redirect. A sign-in-enabled launch has up to 15 minutes to claim the trainer. Other grants expire after two minutes. From the registered launch origin, POST JSON `{"code":"…"}` to `https://openfitness.apogee.training/v1/trainer/claim`. Each code can be used once. The response contains `token`, `name`, `caps`, `accessories` and `cursor`. Clear the stored grant on claim or expiry. Keep the ride token in memory. Send requests with credentials omitted.
 3. POST `{"cursor":0}` (use the cursor from the claim) to `/v1/trainer/ride` on the same API host with `Authorization: Bearer <token>`. Poll about four times per second and use each response's cursor for the next poll. Events contain a `key` in service/characteristic form and `bytes`, an array of unsigned octets. Decode only channels present in `caps`. FTMS indoor bike data is `1826/2ad2`. Cycling power, cadence and trainer-provided heart rate can also be present. Readable features and ranges are in the capability values.
-4. When `1826/2ad9` is present, request FTMS control by posting `{"command":[0],"cursor":…}` to the ride endpoint. Wait for the physical trainer's matching control-point indication before sending the next command. The HTTP response only confirms queueing. Continue polling with the measurement cursor. Apogee uses this for ERG watts, simulated gradient, resistance, start, pause and stop. Trainers vary in which commands they accept.
+4. When `1826/2ad9` is present, request FTMS control by posting `{"command":[0],"cursor":…}` to the ride endpoint. Wait for the physical trainer's matching control-point indication before sending the next command. The HTTP response only confirms queueing. Continue polling with the measurement cursor. A workout might set an ERG power target, while a route might send a simulated gradient. Offer only the commands your app and the connected trainer support.
 5. On exit, post `{"end":true}`. Launching another catalogue experience invalidates the old ride token. An idle browser loses the session after seven seconds. The phone stops forwarding commands on disconnect and attempts an FTMS stop on ending a controlled session. If the browser loses the connection, show a disconnected state and invite the rider to relaunch.
 
 Once implemented, select the trainer companion checkbox when submitting your catalogue listing. Launch origins must match exactly. A rider can unlink their phone from the Trainer companion page in their passport account menu.

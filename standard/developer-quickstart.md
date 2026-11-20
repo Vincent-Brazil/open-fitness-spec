@@ -19,7 +19,11 @@ Put **Continue with Open Fitness** on your app’s sign-in screen. A rider with 
 
 **Launch from the catalogue.** Enable catalogue sign-in in My apps when your app handles `of_launch=signin`. Remove that hint and start your normal passport sign-in if the rider needs a session. Offer new riders registration or a way to link their existing account.
 
-**Bring the trainer too.** Implement the optional [phone companion handoff](trainer-experiment.md). Capture a trainer grant from the URL fragment before starting sign-in and redeem it from your launch origin after the rider returns. Test with and without a linked phone.
+## Bring a paired trainer into a web ride
+
+Host the [browser example](https://github.com/Vincent-Brazil/open-fitness-spec/blob/main/examples/companion.html) on your HTTPS launch origin. Tick the trainer companion option in My apps, publish your listing, and launch it with a paired phone. Your app can receive live watts and cadence without asking to read the rider’s profile. For heart-rate straps, controllers and trainer commands, follow the [companion protocol](https://openfitness.apogee.training/trainer/guide).
+
+If you also offer catalogue sign-in, capture the trainer grant before redirecting and claim it when the rider returns. Test both a paired launch and a launch without a phone. [Step-by-step companion quickstart](https://openfitness.apogee.training/standard/quickstart?feature=companion)
 
 ## Try a connection with your own app ID
 

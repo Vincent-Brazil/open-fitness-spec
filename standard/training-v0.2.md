@@ -2,6 +2,10 @@
 
 An app can offer passport sign-in, training data exchange or both. For training data, use the rider authorisation, bearer token and revocation rules in the cycling exchange. Ask for each field the app needs. Existing grants retain their original permissions.
 
+### Optional live trainer connection
+
+A web riding app can register its HTTPS launch URL for the [experimental phone companion handoff](https://openfitness.apogee.training/trainer/guide). A signed-in rider launching that listing with an online trainer receives a one-time, origin-bound grant. Claiming it gives the ride access to live equipment for that session. Persisting ride history and reading passport fields each require their own consent.
+
 ### Continue with Open Fitness
 
 Sign-in is an optional capability available to every registered app. A developer registers an exact **sign-in callback** in My apps and uses its **sign-in client ID**. A private draft can test sign-in. Catalogue publication is a separate review. The callback must be HTTPS or HTTP on loopback for development, without query, fragment, wildcard or credentials.

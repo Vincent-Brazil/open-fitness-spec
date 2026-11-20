@@ -1,5 +1,7 @@
 # Open Fitness starter kit
 
+To bring a paired trainer into a web ride, serve [companion.html](companion.html) from your registered HTTPS launch URL. It claims a catalogue handoff, polls for power and cadence, and releases the trainer on exit. It runs in the browser without Python or an OAuth client. [Registration, equipment and test steps](../standard/trainer-experiment.md#try-it-with-your-own-app)
+
 Download or clone this repository and run the commands below from its root with Python 3. The examples use the standard library.
 
 ## Preview a ride on your computer

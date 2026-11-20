@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trainer connection example</title>
+<main>
+  <h1>Trainer connection</h1>
+  <p id="status" role="status">Launch this page from your Open Fitness catalogue with your phone connected.</p>
+  <p>Power <output id="power">—</output> · Cadence <output id="cadence">—</output></p>
+  <button id="end" hidden>End connection</button>
+</main>
+<script type="module">
+const base = 'https://openfitness.apogee.training/v1/trainer/';
+const status = document.querySelector('#status');
+const end = document.querySelector('#end');
+const power = document.querySelector('#power');
+const cadence = document.querySelector('#cadence');
+const grant = new URLSearchParams(location.hash.slice(1)).get('of_trainer');
+let token;
+let closed = false;
+
+async function post(path, body, keepalive = false) {
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(base + path, {
+    method: 'POST', credentials: 'omit', cache: 'no-store',
+    headers, body: JSON.stringify(body), keepalive
+  });
+  if (!response.ok) throw new Error('Trainer session unavailable');
+  return response.json();
+}
+
+function showSample({key, bytes}) {
+  const data = new DataView(Uint8Array.from(bytes).buffer);
+  if (key === '1818/2a63' && data.byteLength >= 4) {
+    power.value = data.getInt16(2, true) + ' W';
+  }
+  if (key !== '1826/2ad2' || data.byteLength < 2) return;
+  const flags = data.getUint16(0, true);
+  let offset = 2;
+  if (!(flags & 1)) offset += 2; // Instantaneous speed
+  if (flags & 2) offset += 2; // Average speed
+  if (flags & 4) {
+    if (offset + 2 > data.byteLength) return;
+    cadence.value = data.getUint16(offset, true) / 2 + ' rpm';
+    offset += 2;
+  }
+  if (flags & 8) offset += 2; // Average cadence
+  if (flags & 16) offset += 3; // Total distance
+  if (flags & 32) offset += 2; // Resistance level
+  if ((flags & 64) && offset + 2 <= data.byteLength) {
+    power.value = data.getInt16(offset, true) + ' W';
+  }
+}
+
+function closeRide() {
+  closed = true;
+  if (token) void post('ride', {end: true}, true).catch(() => {});
+  token = undefined;
+  end.hidden = true;
+  power.value = cadence.value = '—';
+  status.textContent = 'Connection ended. Launch again from the catalogue to reconnect.';
+}
+
+async function ride() {
+  history.replaceState(history.state, '', location.pathname + location.search);
+  status.textContent = 'Connecting to your phone…';
+  const session = await post('claim', {code: grant});
+  token = session.token;
+  if (closed) { closeRide(); return; }
+  status.textContent = 'Connected to ' + session.name;
+  end.hidden = false;
+  let cursor = session.cursor;
+  while (!closed) {
+    const batch = await post('ride', {cursor});
+    if (closed) break;
+    for (const event of batch.events) {
+      if (Object.hasOwn(session.caps, event.key)) showSample(event);
+    }
+    cursor = batch.cursor;
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+}
+
+end.addEventListener('click', closeRide);
+window.addEventListener('pagehide', closeRide, {once: true});
+if (grant) ride().catch(closeRide);
+</script>
+</html>

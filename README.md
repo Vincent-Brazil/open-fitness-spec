@@ -9,7 +9,7 @@ The [Python starter kit](examples/README.md) lets you preview a route, workout o
 | If your app needs to… | Start here |
 | --- | --- |
 | Sign a rider in | [Continue with Open Fitness](standard/training-v0.2.md#continue-with-open-fitness) |
-| Bring a paired trainer into a web ride | [Phone companion experiment](standard/trainer-experiment.md) |
+| Bring a paired trainer into a web ride | [Browser example](examples/companion.html) · [Handoff and trainer controls](standard/trainer-experiment.md) |
 | Use a rider’s training settings | [Read a profile](standard/open-fitness-v0.1.md#read-a-profile) |
 | Save a completed ride | [Write one completed effort](standard/open-fitness-v0.1.md#write-one-completed-effort) |
 | Read rides from other apps | [Read shared history](standard/developer-quickstart.md#read-shared-history) |
