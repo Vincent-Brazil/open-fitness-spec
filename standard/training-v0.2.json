@@ -13,6 +13,9 @@
     },
     {
       "$ref": "#/$defs/recording"
+    },
+    {
+      "$ref": "#/$defs/workout_library"
     }
   ],
   "$defs": {
@@ -260,7 +263,11 @@
           "maximum": 100000
         }
       },
-      "dependentRequired": { "ascent_source": ["ascent_m"] },
+      "dependentRequired": {
+        "ascent_source": [
+          "ascent_m"
+        ]
+      },
       "required": []
     },
     "ftp_test": {
@@ -382,6 +389,47 @@
         "samples",
         "laps"
       ]
+    },
+    "workout_library": {
+      "type": "object",
+      "required": [
+        "workouts",
+        "next_cursor"
+      ],
+      "properties": {
+        "workouts": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "download_url"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "download_url": {
+                "type": "string",
+                "pattern": "^/v1/workouts/[^/]+/file$"
+              }
+            }
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-"""Run: python passport_quickstart.py YOUR_CLIENT_ID signin|settings|ride|history"""
+"""Run: python passport_quickstart.py YOUR_CLIENT_ID signin|settings|ride|history|workouts"""
 import argparse
 import base64
 import hashlib
@@ -17,7 +17,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 PASSPORT = "https://openfitness.apogee.training"
 PORT = 8765
-SCOPES = {"settings": "ftp", "ride": "write", "history": "history"}
+SCOPES = {"settings": "ftp", "ride": "write", "history": "history", "workouts": "workouts_read"}
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -117,6 +117,17 @@ def run(base, client_id, mode, port=PORT):
     if mode == "settings":
         shared = call(base, "/v1/training", token=token)["shared"]
         print(f"Passport FTP: {shared['ftp']:g} W" if "ftp" in shared else "No FTP set. Keep the app's current setting.")
+    elif mode == "workouts":
+        path = "/v1/workouts"
+        while True:
+            page = call(base, path, token=token)
+            for workout in page["workouts"]:
+                print(workout["name"], workout["download_url"])
+            if page["next_cursor"] is None:
+                if not page["workouts"]:
+                    print("Your workout library is empty.")
+                break
+            path = "/v1/workouts?" + urlencode({"after": page["next_cursor"]})
     elif mode == "ride":
         # A fixed test recording makes a second run safe to replay with this rider and client.
         ride = {"source_ride_id": "quickstart-ride-001", "started": "2026-01-15T09:00:00Z",
