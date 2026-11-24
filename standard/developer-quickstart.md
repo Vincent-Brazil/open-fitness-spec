@@ -152,3 +152,12 @@ Before submitting the listing, try granting FTP while declining weight, replayin
 Request `height` only if your app uses it. To show current FTP W/kg, request both `ftp` and `weight` and read `shared.ftp_w_per_kg` from /v1/training. For past efforts, use the weight stored with the source ride. Offer riders a preview before filling an empty passport with confirmed app settings.
 
 A recorder can start with a basic ride and add training-load method, power zones, ride-time weight, samples, laps or original files independently. In a test rider, send the [recording example](training-v0.2.md#recordings-laps-and-downloads) twice. Check that a second client sees one ride, can download its TCX, and receives only the channels its own rider grant allows. Update the rider's current weight and check that the old ride's W/kg stays fixed. Omit unavailable older recordings during backfill.
+
+## Open a rider’s ZWO workout
+
+1. Download the [sample Morning tempo workout](https://openfitness.apogee.training/standard/morning-tempo.zwo) and add it in your test passport under **My workouts**. A rider can remove or download a plan from the same page.
+2. In My apps, register a passport data connection with `workouts_read`. Start the normal data-consent flow from your app’s settings. Ask for that permission when the rider links their library.
+3. In your workout picker, call `GET /v1/workouts` with the granted bearer. Show each name and follow `next_cursor` while there are more pages. When the rider chooses a workout, fetch its `download_url` on that issuer with the same bearer and pass the original XML to your ZWO reader.
+4. Test with an empty library, an uploaded workout and a revoked grant. Sign-in and workout access are separate. If your app already reads ZWO and controls a trainer, it can use the same playback code it uses for a local file.
+
+Try the list with `python passport_quickstart.py YOUR_CLIENT_ID workouts --port 0` after registering the portless loopback data callback. The workout-library section of the specification includes a complete example response and ZWO file.

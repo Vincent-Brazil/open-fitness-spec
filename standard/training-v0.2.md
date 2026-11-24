@@ -138,3 +138,47 @@ A writer with `write recording_write` can include a top-level `recording` in POS
 A rider can delete one ride from the passport ride log. Its contributions, recordings and original files are removed together. Separate FTP and weight history entries remain. Incremental history pages include `deleted_ride_ids` for removals after the supplied cursor. Discard cached copies for those IDs and advance the cursor even on pages containing only deletions. Clients using earlier servers can treat an absent deletion list as empty.
 
 Riders can download each ride's summary, its TCX when samples exist, and any attached originals. Their full ZIP includes the JSON recordings, the profile and weight and FTP histories. TCX exports from a timer-clock source use the ride start plus timer offsets. Use the JSON clock and nulls for analysis sensitive to pauses or missing data.
+
+## Personal workout library
+
+A rider adds a structured cycling workout under **Rider passport → My workouts → Add workout** by choosing a ZWO file. The passport keeps the original XML, including workout steps, power targets, cadence cues and text events. Power targets in ZWO are fractions of FTP. Reading a workout does not grant access to the rider’s FTP. A riding app can use its local FTP or request the existing `ftp` permission separately.
+
+Register `workouts_read` as a passport data scope. Use the normal OAuth authorization-code flow with S256 PKCE, then send the granted bearer token with both requests. One grant lets that app read the rider’s whole private library, including future additions. The rider can turn off workout access for that app under **Apps with access**.
+
+1. When the rider opens the app’s workout picker, call `GET /v1/workouts`. The server returns up to 100 workouts. For another page, send the URL-encoded opaque `next_cursor` as `?after=…`. A null cursor ends the listing. Refresh from the first page when the picker reopens.
+2. Show each `name`. When the rider chooses a workout, fetch its `download_url` from the same passport issuer, with the same bearer token. The response is the original ZWO bytes as an `application/xml` attachment. Parse it with the app’s ZWO reader and run it locally. IDs are opaque and scoped to the passport server.
+3. A missing workout or a workout belonging to another rider returns 404. An absent or revoked token returns 401. A valid token without the scope returns 403. Apps can continue using local workouts in each case. Older servers without this optional endpoint can return 404.
+
+This synthetic rider has one workout in their passport.
+
+```http
+GET /v1/workouts HTTP/1.1
+Authorization: Bearer EXAMPLE
+```
+
+```json
+{"workouts":[{"id":"example-tempo","name":"Morning tempo","download_url":"/v1/workouts/example-tempo/file"}],"next_cursor":null}
+```
+
+`GET /v1/workouts/example-tempo/file` with the same bearer returns the workout file.
+
+```xml
+<workout_file>
+  <name>Morning tempo</name>
+  <sportType>bike</sportType>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.45" PowerHigh="0.70"/>
+    <SteadyState Duration="600" Power="0.80" Cadence="90"/>
+  </workout>
+</workout_file>
+```
+
+An empty library returns `{"workouts":[],"next_cursor":null}`. Re-uploading identical ZWO bytes creates one library entry. Removing a workout stops subsequent downloads. The grant offers read access only. Saving the completed ride uses the existing, separately granted `write` flow.
+
+## Move a rider passport
+
+The rider downloads **Export my data** on the source server and chooses **Account settings → Restore from passport ZIP** on the destination passport. The destination adds missing rides, their original source labels, contributions, recordings, attached activity files, FTP and weight history, and saved workouts. Settings and a picture supplied by the archive update those fields. Existing rides and workouts are kept. The rider signs in and consents to connections on the destination. Restore does not enqueue rides for external delivery.
+
+Version 1 stores `format_version: 1`, the issuing server’s `origin`, `profile`, `activities`, `sources`, `source_apps`, `ftp_history`, `weight_history` and `workouts` in `profile.json`. Each activity’s `id` joins its source rows through `ride`. Its optional `primary_source` selects the primary source app. The `source_apps` map records the original issuer, client ID and display name for attribution across moves. Restore assigns destination-local IDs. Issuer and client labels in an uploaded file confer no authority to act for an app.
+
+Optional ZIP entries include `profile-picture.jpg`, `recordings/{id}.json` (with source app, source ride ID, clock, channels, samples and laps), and `originals/{first 12 hex digits of digest}-{name}` referenced by activity metadata. Each workout manifest entry supplies `digest` (lower-case SHA-256 of the original bytes) and `filename`. Its file is `workouts/{digest}.zwo`. Verify file digests and apply a restore atomically. Replaying the same archive leaves the destination unchanged. The reference server also accepts earlier exports without a format version or workout list. Its restore limits are 64 MiB zipped, 192 MiB expanded, 32 MiB per member and 10,000 members.
