@@ -12,12 +12,16 @@ Put **Continue with Open Fitness** on your app’s sign-in screen. A rider with 
 
 1. [Register your app](https://openfitness.apogee.training/studio/app/new). Expand **Add Continue with Open Fitness**, enter `http://127.0.0.1:8765/signin/callback` as the sign-in callback and save the draft. Copy the **Sign-in client ID** from My apps.
 2. [Download the example](../examples/passport_quickstart.py) and run `python passport_quickstart.py YOUR_CLIENT_ID signin`. Approve the sign-in in your browser. The terminal should say **Passport identity verified for this app**.
-3. In your own backend, start the browser flow at `/signin/authorize` and redeem the code at `/signin/token`. The example’s `connect` and `run` functions show state, PKCE and identity checks. Use a registered HTTPS callback for your deployed app.
+3. In your own backend, start the browser flow at `/signin/authorize` and redeem the code at `/signin/token`. The example’s `connect` and `run` functions show state, PKCE and identity checks. Use a registered HTTPS callback for a deployed web app.
 4. Look up the verified `(iss, aud, sub)` in your account store. Create a session for a returning rider. For a new rider, offer to create an account or sign in to an existing app account to link it. Bind a linking attempt to that authenticated account and reject an identity already linked elsewhere.
 
 [Read the sign-in request and response contract](training-v0.2.md#continue-with-open-fitness). To add optional ride sharing, offer **Connect passport** inside the app and follow the data example below.
 
 **Launch from the catalogue.** Enable catalogue sign-in in My apps when your app handles `of_launch=signin`. Remove that hint and start your normal passport sign-in if the rider needs a session. Offer new riders registration or a way to link their existing account.
+
+## Desktop apps
+
+In developer settings, register `http://127.0.0.1/signin/callback` for sign-in or `http://127.0.0.1/callback` for passport data. Leave out the port in the registration. Run `python passport_quickstart.py YOUR_CLIENT_ID signin --port 0` to try it. The app asks the operating system for a free port, opens the rider’s browser, and uses that same callback and PKCE verifier to redeem the code. The rider only approves the connection. A desktop release can use this flow without a client secret.
 
 ## Bring a paired trainer into a web ride
 
@@ -40,7 +44,7 @@ python passport_quickstart.py YOUR_CLIENT_ID history
 
 **Settings** asks for FTP and prints `Passport FTP: 240 W` for that fixture. **Ride** asks for write access and sends the same 15-minute sample twice. Both receipts should have the same `ride_id`, and the test passport should show one ride. **History** asks for read access and prints each ride’s ID, date, source label and duration. Each run asks for one permission and replaces the preceding approved grant for that client and rider.
 
-The example connects to the public passport by default. If you run a local passport on port 5810, register the app and rider on that instance and add `--local` to the command. For your deployed app, use a separate registration with its HTTPS callback. Saving an edit to an existing registration revokes its rider grants.
+The example connects to the public passport by default. If you run a local passport on port 5810, register the app and rider on that instance and add `--local` to the command. For a deployed web app, use a separate registration with its HTTPS callback. Saving an edit to an existing registration revokes its rider grants.
 
 ## Show a passport picture
 
@@ -113,7 +117,9 @@ With `detail_write`, send a positive integer `revision` and a `details` object i
 
 ## Read shared history
 
-Start with `GET /v1/history?after=0&limit=100`. Each page contains `rides`, `next_cursor` and `has_more`. Insert or update each ride by its passport `id`, preserve its `sources`, and save the returned cursor **after** saving the page. Continue while `has_more` is true. On the next refresh, resume from the saved cursor. Use the returned cursor even when rides appear in a different date order.
+Start with `GET /v1/history?after=0&limit=100`. Each page contains `rides`, `deleted_ride_ids`, `next_cursor` and `has_more`. Remove locally cached passport entries whose IDs appear in the deletion list. Earlier servers can omit the list. Insert or update each ride by its passport `id`, preserve its `sources`, and save the returned cursor **after** saving the page. Continue while `has_more` is true. On the next refresh, resume from the saved cursor. Use the returned cursor even when rides appear in a different date order.
+
+With `history` permission, a deletion-only page might return `{"rides":[],"deleted_ride_ids":[42],"next_cursor":157,"has_more":false}`. Remove passport ride 42 and save cursor 157. Preserve an independently recorded original in the source app.
 
 A corrected ride can return on a later page with the same ID. An entry can have several sources, including file imports. Display it once and keep imported history out of the app’s outgoing ride queue. If a rider authorises additional read fields, restart from zero to pick up newly visible detail on older rides.
 
@@ -136,6 +142,7 @@ Post that JSON to `/v1/training/ftp`. Retry an interrupted submission with the s
 | 403 | Check the granted scopes. Leave the affected feature off and let the rider review permissions. |
 | 409 | For a ride, check source ID, start and revision. For FTP, read the current revision and show the conflict before proposing a change again. |
 | 429 | Pause requests for this grant. Honour `Retry-After` when available. The service allows 120 API calls per minute per grant. |
+| 410 on a ride write | Drop the pending upload for that source ride ID. The rider deleted it. |
 | Timeout or 5xx | Keep the pending operation and retry with backoff using the same recording or test ID. |
 
 Before submitting the listing, try granting FTP while declining weight, replaying a saved ride after restarting your app, and revoking access from the passport. For a two-way integration, connect a second test client as a history reader. It should see one attributed ride, and its own read token should receive 403 on a write. Record which capabilities you tested in the listing so riders know what will carry across. [Full specification](open-fitness-v0.1.md) · [Apogee integration](https://openfitness.apogee.training/apps/apogee) · [Publisher studio](https://openfitness.apogee.training/studio)
