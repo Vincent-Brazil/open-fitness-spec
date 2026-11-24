@@ -149,7 +149,7 @@ Register `workouts_read` as a passport data scope. Use the normal OAuth authoriz
 2. Show each `name`. When the rider chooses a workout, fetch its `download_url` from the same passport issuer, with the same bearer token. The response is the original ZWO bytes as an `application/xml` attachment. Parse it with the app’s ZWO reader and run it locally. IDs are opaque and scoped to the passport server.
 3. A missing workout or a workout belonging to another rider returns 404. An absent or revoked token returns 401. A valid token without the scope returns 403. Apps can continue using local workouts in each case. Older servers without this optional endpoint can return 404.
 
-Example request and response for a synthetic rider:
+This synthetic rider has one workout in their passport.
 
 ```http
 GET /v1/workouts HTTP/1.1
@@ -160,7 +160,7 @@ Authorization: Bearer EXAMPLE
 {"workouts":[{"id":"example-tempo","name":"Morning tempo","download_url":"/v1/workouts/example-tempo/file"}],"next_cursor":null}
 ```
 
-`GET /v1/workouts/example-tempo/file` with the same bearer returns:
+`GET /v1/workouts/example-tempo/file` with the same bearer returns the workout file.
 
 ```xml
 <workout_file>
