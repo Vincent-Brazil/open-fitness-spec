@@ -23,14 +23,14 @@ After verifying the sign-in response, recognise returning riders by the issuer, 
 
 ## Connect a rider
 
-1. From **List your app** in the catalogue, register your launch URL. To use the API, add an exact callback URL and the scopes your app may request. The publisher page shows your client ID. Use HTTPS, or HTTP loopback for local development. Apogee requests `write`.
+1. From **List your app** in the catalogue, register your launch URL. To use the API, add an exact callback URL and the scopes your app may request. The publisher page shows your client ID. Use HTTPS for web callbacks. A released native app can register a portless loopback callback as described below. Apogee requests `write`.
 2. Navigate the rider to `GET /oauth/authorize`. Send `client_id`, `redirect_uri`, an unpredictable `state`, space-separated `scope`, `code_challenge_method=S256` and `code_challenge`. Derive the challenge from a fresh, random verifier using SHA-256 and unpadded base64url. Retain state and verifier for this attempt. [PKCE specification](https://www.rfc-editor.org/rfc/rfc7636)
 3. The rider chooses individual permissions. On return, match `state` to this attempt and handle denial (`error=access_denied`). Exchange the code at `POST /oauth/token` as form data with `grant_type=authorization_code`, `client_id`, `redirect_uri`, `code` and `code_verifier`. A code is single-use and expires after two minutes in the prototype.
 4. The JSON response contains `access_token`, `token_type: Bearer` and `scope` (the space-separated granted subset). Use `Authorization: Bearer <token>` with the platform API. A successful connection may have zero data permissions. A new approved grant replaces the earlier one for this app and rider. A declined request leaves any earlier grant in place.
 
 The prototype implements delegated access. It issues no ID token. For an offline or guest ride, keep the local experience usable. Offer export or ask the rider whether to sync when connected. On a shared trainer, establish which rider owns an effort before asking them to share it.
 
-Backend and native apps can exchange the code directly. A browser-only client can use PKCE from its registered callback origin. Send the token request as form data, then send the bearer token on API calls with browser credentials omitted. The service permits CORS for the registered origin. Keep the verifier and state specific to this sign-in attempt. Native clients may register a loopback callback.
+Backend and native apps can exchange the code directly. A browser-only client can use PKCE from its registered callback origin. Send the token request as form data, then send the bearer token on API calls with browser credentials omitted. The service permits CORS for the registered origin. Keep the verifier and state specific to this sign-in attempt. A native app can register `http://127.0.0.1/callback` or `http://[::1]/callback` in developer settings. It binds an HTTP listener on that same IP with port 0 so the operating system assigns a free port. It sends the full callback URL with that port in both the authorization request and token exchange. The IP literal and path must match the registration. A registration with an explicit port keeps exact matching. Browser CORS uses the registered origin. [RFC 8252 §7.3](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)
 
 ## Write one completed effort
 
@@ -79,7 +79,7 @@ The rider can see past contributors after revoking a grant. Current access is ma
 {"subject":"opaque-to-other-apps","scopes":["ftp"],"shared":{"ftp":220}}
 ```
 
-Riders revoke grants from their passport. Future reads and writes then fail. Revocation preserves the rider’s previously saved rides. Readers should discard their token and stop requesting data after a revocation. A rider can export activity summaries and their original imported files, or delete their profile.
+Riders revoke grants from their passport. Future reads and writes then fail. Revocation preserves the rider’s previously saved rides. Readers should discard their token and stop requesting data after a revocation. A rider can export activity summaries and original files, delete an individual ride from the ride log, or delete their profile. Removing a ride removes all its passport contributions, samples and originals. A repeat app write with the same source ride ID receives HTTP 410.
 
 ## Files, access and errors
 
@@ -92,6 +92,7 @@ API errors contain a JSON `error` string. Use HTTP status to decide the next act
 | 400 | Correct the malformed payload or invalid registration parameters before retrying. |
 | 401 | Obtain a fresh grant after a missing or revoked bearer token. Restart a failed code exchange. |
 | 403 | Explain the missing permission. Let the rider decide whether to reconnect. |
+| 410 | The rider deleted this ride. Stop sending this source ride ID. |
 | 429 | Back off. The sandbox allows 120 API calls per minute per grant. |
 | Network failure or 5xx | Keep the completed record. Retry the same source ID after connectivity returns. |
 

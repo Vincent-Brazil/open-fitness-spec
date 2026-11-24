@@ -129,6 +129,8 @@ def run(base, client_id, mode, port=PORT):
             page = call(base, f"/v1/history?after={cursor}&limit=100", token=token)
             for ride in page["rides"]:
                 print(ride["id"], ride["started"], ride["label"], ride["duration"], "s")
+            for ride_id in page.get("deleted_ride_ids", []):
+                print("Removed from passport:", ride_id)
             cursor = page["next_cursor"]
             if not page["has_more"]:
                 print("Caught up. Next sync cursor:", cursor)
@@ -140,8 +142,11 @@ if __name__ == "__main__":
     parser.add_argument("client_id")
     parser.add_argument("mode", choices=["signin", *SCOPES])
     parser.add_argument("--local", action="store_true", help="Use the local passport on port 5810")
+    parser.add_argument("--port", type=int, default=PORT, help="Callback port. Use 0 with a portless native registration.")
     args = parser.parse_args()
+    if not 0 <= args.port <= 65535:
+        parser.error("--port must be between 0 and 65535")
     try:
-        run("http://127.0.0.1:5810" if args.local else PASSPORT, args.client_id, args.mode)
+        run("http://127.0.0.1:5810" if args.local else PASSPORT, args.client_id, args.mode, args.port)
     except (OSError, RuntimeError) as error:
         sys.exit(str(error))
